@@ -226,11 +226,21 @@ class TestBSONTypes(PandasTestBase):
 
 class TestNulls(TestNullsBase):
     def find_fn(self, coll, query, schema):
-        return find_pandas_all(coll, query, schema=schema)
+        out = find_pandas_all(coll, query, schema=schema)
+
+        return out
 
     def equal_fn(self, left, right):
-        left = left.fillna(0).replace(-0b1 << 63, 0)  # NaN is sometimes this
-        right = right.fillna(0).replace(-0b1 << 63, 0)
+        left = left.fillna(0)
+        if np.any(left.isin([-0b1 << 63]).any()):
+            pass
+        print(left)
+        left = left.replace(-0b1 << 63, 0)  # NaN is sometimes this
+        right = right.fillna(0)
+        if np.any(right.isin([-0b1 << 63]).any()):
+            pass
+        print(right)
+        right = right.replace(-0b1 << 63, 0)
         if type(left) == pandas.DataFrame:
             pandas.testing.assert_frame_equal(left, right, check_dtype=False)
         else:
